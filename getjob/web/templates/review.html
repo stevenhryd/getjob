@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Review{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Menunggu review</h1>
+    <p class="muted">Skor {{ cfg.matching.review_threshold }}–{{ cfg.matching.auto_apply_threshold - 1 }} (atau ada catatan dari AI). Setujui untuk memasukkannya ke antrian kirim.</p>
+  </div>
+</div>
+
+{% for j in jobs %}
+<article class="card review-card" style="margin-bottom:16px">
+  <div class="row">
+    <span class="score {{ 'hi' if j.score >= cfg.matching.auto_apply_threshold }}">{{ j.score }}</span>
+    <h3><a href="/jobs/{{ j.id }}" class="job-title">{{ j.title }}</a></h3>
+  </div>
+  <div class="meta">{{ j.company }} · {{ j.location or '-' }}{% if j.is_remote %} · Remote{% endif %} · {{ j.source | platform }}{% if j.salary %} · {{ j.salary }}{% endif %} · <a href="{{ j.url }}" target="_blank" rel="noopener">Buka lowongan ↗</a></div>
+  {% if j.score_reason %}<p class="ink2">{{ j.score_reason }}</p>{% endif %}
+  {% if j.red_flags %}<div class="alert warning">⚠ {{ j.red_flags | join('; ') }}</div>{% endif %}
+  <div class="chips" style="margin-bottom:10px">
+    {% for s in j.matched_skills or [] %}<span class="chip ok">✓ {{ s }}</span>{% endfor %}
+    {% for s in j.missing_skills or [] %}<span class="chip">✗ {{ s }}</span>{% endfor %}
+  </div>
+  <form method="post" action="/jobs/{{ j.id }}/action">
+    <label for="cl-{{ j.id }}"><small>Cover letter (bisa diedit sebelum disetujui)</small></label>
+    <textarea id="cl-{{ j.id }}" name="cover_letter">{{ j.cover_letter or '' }}</textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn primary" name="action" value="approve">Setujui</button>
+      <button class="btn" name="action" value="apply_now">Setujui & kirim sekarang</button>
+      <button class="btn" name="action" value="save_letter">Simpan cover letter</button>
+      <span class="spacer"></span>
+      <button class="btn danger" name="action" value="dismiss">Tolak</button>
+    </div>
+  </form>
+</article>
+{% else %}
+<div class="card"><p class="muted">Tidak ada lowongan yang menunggu review. 🎉</p></div>
+{% endfor %}
+{% endblock %}

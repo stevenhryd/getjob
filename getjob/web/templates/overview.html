@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, score, platform_badge %}
+{% block title %}Ringkasan{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Ringkasan</h1>
+    <div class="row ink2">
+      {% if worker.alive %}
+        <span class="badge good">Worker aktif</span>
+        {% if worker.busy %}<span class="badge info">Sedang {{ worker.busy }}</span>{% endif %}
+        {% if worker.paused %}<span class="badge warning">Jadwal dijeda</span>{% endif %}
+      {% else %}
+        <span class="badge critical">Worker tidak berjalan</span>
+      {% endif %}
+      <small>Cari berikutnya: {{ worker.next_search | ago if worker.next_search else '-' }} · Kirim berikutnya: {{ worker.next_apply | ago if worker.next_apply else '-' }}</small>
+    </div>
+  </div>
+  <div class="row">
+    <form method="post" action="/control" class="inline"><input type="hidden" name="action" value="search"><button class="btn">Cari sekarang</button></form>
+    <form method="post" action="/control" class="inline"><input type="hidden" name="action" value="apply"><button class="btn primary">Kirim antrian sekarang</button></form>
+    {% if worker.paused %}
+      <form method="post" action="/control" class="inline"><input type="hidden" name="action" value="resume"><button class="btn">Lanjutkan jadwal</button></form>
+    {% else %}
+      <form method="post" action="/control" class="inline"><input type="hidden" name="action" value="pause"><button class="btn">Jeda jadwal</button></form>
+    {% endif %}
+  </div>
+</div>
+
+{% if not worker.alive %}
+<div class="alert critical">Worker belum berjalan, jadi tidak ada pencarian atau pengiriman otomatis. Jalankan <code>getjob start</code> (atau service systemd) di mini PC.</div>
+{% endif %}
+{% if cfg.apply.dry_run %}
+<div class="alert warning"><strong>Mode uji coba (dry run) aktif.</strong> Program mengisi form sampai tombol kirim terakhir, tapi <em>tidak</em> mengirim lamaran. Cek hasilnya di status "Uji coba OK", lalu set <code>apply.dry_run: false</code> di <code>config.yaml</code> dan restart.</div>
+{% endif %}
+{% if not ai_available %}
+<div class="alert">AI tidak aktif (belum ada <code>ANTHROPIC_API_KEY</code> atau <code>ai.enabled: false</code>). Penilaian memakai kata kunci dan cover letter memakai template.</div>
+{% endif %}
+{% for p in platforms if p.enabled and (p.get('status') in ('needs_login', 'blocked')) and not p.get('paused') %}
+<div class="alert critical"><strong>{{ p.platform | platform }}:</strong> {{ 'perlu login ulang' if p.status == 'needs_login' else 'terkena captcha/verifikasi' }}. Jalankan <code>getjob login {{ p.platform }}</code> di mini PC, lalu reset statusnya di <a href="/settings">Pengaturan</a>.{% if p.message %} <small>({{ p.message }})</small>{% endif %}</div>
+{% endfor %}
+
+<section class="tiles" aria-label="Statistik">
+  <div class="tile"><div class="label">Terkirim hari ini</div><div class="value">{{ tiles.applied_today }}</div><div class="sub">batas {{ cfg.apply.daily_limit_total }}/hari</div></div>
+  <div class="tile"><a href="/review"><div class="label">Menunggu review</div><div class="value">{{ tiles.review }}</div><div class="sub">butuh persetujuan Anda</div></a></div>
+  <div class="tile"><a href="/jobs?status=approved"><div class="label">Antrian kirim</div><div class="value">{{ tiles.approved }}</div><div class="sub">akan dikirim otomatis</div></a></div>
+  <div class="tile"><a href="/jobs?status=sent"><div class="label">Total terkirim</div><div class="value">{{ tiles.sent_total }}</div><div class="sub">semua waktu</div></a></div>
+  <div class="tile"><a href="/jobs?status=manual"><div class="label">Perlu dilamar manual</div><div class="value">{{ tiles.manual }}</div><div class="sub">lamaran eksternal / form sulit</div></a></div>
+  <div class="tile"><a href="/jobs?status=interview"><div class="label">Interview & tawaran</div><div class="value">{{ tiles.interview }}</div><div class="sub">update status manual</div></a></div>
+  <div class="tile"><div class="label">Lowongan ditemukan</div><div class="value">{{ tiles.found_week }}</div><div class="sub">7 hari terakhir · {{ tiles.found_today }} hari ini</div></div>
+</section>
+
+<script type="application/json" id="chart-data">{{ charts | safe }}</script>
+<section class="card" style="margin-top:16px">
+  <h2>Lamaran terkirim per hari</h2>
+  <p class="muted" style="margin-top:-8px">30 hari terakhir</p>
+  <div class="chart" id="chart-per-day"></div>
+</section>
+<section class="grid grid-2" style="margin-top:16px">
+  <div class="card">
+    <h2>Corong lamaran</h2>
+    <div class="chart" id="chart-funnel"></div>
+  </div>
+  <div class="card">
+    <h2>Terkirim per platform</h2>
+    <div class="chart" id="chart-platform"></div>
+  </div>
+</section>
+
+<section class="grid grid-2" style="margin-top:16px">
+  <div class="card">
+    <div class="row"><h2>Lamaran terakhir</h2><span class="spacer"></span><a href="/jobs?status=sent">Semua</a></div>
+    {% if recent %}
+    <table class="responsive">
+      <thead><tr><th>Posisi</th><th>Platform</th><th>Status</th><th>Waktu</th></tr></thead>
+      <tbody>
+      {% for j in recent %}
+        <tr>
+          <td data-label="Posisi"><a class="job-title" href="/jobs/{{ j.id }}">{{ j.title }}</a><br><small>{{ j.company }}</small></td>
+          <td data-label="Platform">{{ j.apply_method | platform }}</td>
+          <td data-label="Status">{{ status_badge(j) }}</td>
+          <td data-label="Waktu"><small>{{ j.applied_at | local }}</small></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="muted">Belum ada lamaran terkirim.</p>{% endif %}
+  </div>
+  <div class="card">
+    <div class="row"><h2>Aktivitas terbaru</h2><span class="spacer"></span><a href="/activity">Semua</a></div>
+    {% for e in events %}
+      <div class="event {{ e.level }}"><time>{{ e.ts | local }}</time><span class="msg">{% if e.job_id %}<a href="/jobs/{{ e.job_id }}">#{{ e.job_id }}</a> {% endif %}{{ e.message }}</span></div>
+    {% else %}<p class="muted">Belum ada aktivitas.</p>{% endfor %}
+  </div>
+</section>
+
+<section class="card" style="margin-top:16px">
+  <div class="row"><h2>Status platform</h2><span class="spacer"></span><small>AI: {{ 'aktif' if ai_available else 'nonaktif' }} · {{ ai_calls }}/{{ cfg.ai.max_calls_per_day }} panggilan hari ini</small></div>
+  <div class="table-wrap">
+  <table class="responsive">
+    <thead><tr><th>Platform</th><th>Pencarian</th><th>Status login</th><th>Dicek</th></tr></thead>
+    <tbody>
+    {% for p in platforms %}
+      <tr>
+        <td data-label="Platform">{{ p.platform | platform }}</td>
+        <td data-label="Pencarian">{{ 'Aktif' if p.enabled else 'Nonaktif' }}</td>
+        <td data-label="Login">{{ platform_badge(p) }}</td>
+        <td data-label="Dicek"><small>{{ p.get('checked_at') | iso_local }}</small></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

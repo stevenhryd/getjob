@@ -1,0 +1,80 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Backend Engineer - ACME</title></head>
+<body>
+<header id="global-nav">LinkedIn nav</header>
+<h1>Backend Engineer</h1>
+<button class="jobs-apply-button" aria-label="Easy Apply to Backend Engineer at ACME">Easy Apply</button>
+<div id="modal" role="dialog" class="jobs-easy-apply-modal" style="display:none">
+  <button aria-label="Dismiss" onclick="document.getElementById('discard').style.display='block'">×</button>
+  <div id="discard" style="display:none">
+    <button data-control-name="discard_application_confirm_btn" onclick="closeAll()">Discard</button>
+  </div>
+  <div class="step" id="s1">
+    <label for="phone">Mobile phone number</label><input id="phone" required>
+    <label for="email">Email address</label>
+    <select id="email" required><option>Select an option</option><option>anda@email.com</option></select>
+    <button aria-label="Continue to next step" onclick="next(1)">Next</button>
+  </div>
+  <div class="step" id="s2" style="display:none">
+    <label for="yrs">How many years of work experience do you have with Python?</label>
+    <input id="yrs" type="text" required>
+    <fieldset>
+      <legend>Are you willing to relocate?</legend>
+      <input type="radio" name="reloc" id="r1" value="Yes"><label for="r1">Yes</label>
+      <input type="radio" name="reloc" id="r2" value="No"><label for="r2">No</label>
+    </fieldset>
+    <label for="spons">Will you now or in the future require visa sponsorship?</label>
+    <select id="spons" required><option>Select an option</option><option>Yes</option><option>No</option></select>
+    <label for="motiv">What motivates you about this role?</label>
+    <textarea id="motiv"></textarea>
+    <button aria-label="Review your application" onclick="next(2)">Review</button>
+  </div>
+  <div class="step" id="s3" style="display:none">
+    <input type="checkbox" id="follow-company-checkbox" checked>
+    <label for="follow-company-checkbox">Follow ACME to stay up to date with their page.</label>
+    <button aria-label="Submit application" onclick="submitApp()">Submit application</button>
+  </div>
+  <div id="done" style="display:none">Your application was sent to ACME!</div>
+</div>
+<script>
+  document.querySelector('.jobs-apply-button').onclick = () => { document.getElementById('modal').style.display = 'block'; };
+  function valid(stepEl) {
+    let ok = true;
+    stepEl.querySelectorAll('[required]').forEach(e => {
+      if (!e.value || e.value === 'Select an option') { ok = false; e.setAttribute('aria-invalid', 'true'); }
+      else e.removeAttribute('aria-invalid');
+    });
+    const radios = stepEl.querySelectorAll('input[type=radio]');
+    if (radios.length && ![...radios].some(r => r.checked)) ok = false;
+    return ok;
+  }
+  function next(n) {
+    const cur = document.getElementById('s' + n);
+    if (!valid(cur)) {
+      if (!cur.querySelector('.artdeco-inline-feedback--error')) {
+        const d = document.createElement('div');
+        d.className = 'artdeco-inline-feedback--error';
+        d.textContent = 'Please enter a valid answer';
+        cur.appendChild(d);
+      }
+      return;
+    }
+    cur.style.display = 'none';
+    document.getElementById('s' + (n + 1)).style.display = 'block';
+  }
+  function submitApp() {
+    window.submitted = {
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      yrs: document.getElementById('yrs').value,
+      reloc: document.querySelector('input[name=reloc]:checked').value,
+      spons: document.getElementById('spons').value,
+      motiv: document.getElementById('motiv').value,
+      follow: document.getElementById('follow-company-checkbox').checked,
+    };
+    document.getElementById('s3').style.display = 'none';
+    document.getElementById('done').style.display = 'block';
+  }
+  function closeAll() { document.getElementById('modal').style.display = 'none'; window.discarded = true; }
+</script>
+</body></html>

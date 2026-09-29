@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from "_macros.html" import platform_badge %}
+{% block title %}Pengaturan{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Pengaturan</h1><p class="muted">Ubah pengaturan di <code>config.yaml</code> lalu restart program. Halaman ini menampilkan nilai yang sedang dipakai.</p></div>
+  <div class="row">
+    <form method="post" action="/control" class="inline"><input type="hidden" name="action" value="rescore"><button class="btn">Nilai lowongan baru</button></form>
+    <form method="post" action="/control" class="inline"><input type="hidden" name="action" value="requeue_tested"><button class="btn" data-confirm="Masukkan semua lowongan 'Uji coba OK' ke antrian kirim? Pastikan dry_run sudah dimatikan.">Kirim ulang hasil uji coba</button></form>
+  </div>
+</div>
+
+<section class="card" style="margin-bottom:16px">
+  <h2>Platform</h2>
+  <div class="table-wrap">
+  <table class="responsive">
+    <thead><tr><th>Platform</th><th>Status</th><th class="num">Terkirim hari ini</th><th>Keterangan</th><th></th></tr></thead>
+    <tbody>
+    {% for p in platforms %}
+      <tr>
+        <td data-label="Platform">{{ p.platform | platform }}{% if not p.enabled %} <small>(pencarian nonaktif)</small>{% endif %}</td>
+        <td data-label="Status">{{ platform_badge(p) }}</td>
+        <td class="num" data-label="Hari ini">{{ applied_today.get(p.platform, 0) }} / {{ cfg.apply.daily_limits.get(p.platform, cfg.apply.daily_limit_total) }}</td>
+        <td data-label="Keterangan"><small>{{ p.get('message') or '-' }}</small></td>
+        <td>
+          <form method="post" action="/control" class="row">
+            <input type="hidden" name="platform" value="{{ p.platform }}">
+            {% if p.get('paused') %}<button class="btn small" name="action" value="platform_resume">Aktifkan</button>
+            {% else %}<button class="btn small" name="action" value="platform_pause">Jeda</button>{% endif %}
+            <button class="btn small" name="action" value="platform_reset">Reset status</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted" style="margin-top:8px"><small>Jika status "Perlu login" atau "Captcha": jalankan <code>getjob login &lt;platform&gt;</code> di mini PC, selesaikan login/verifikasi di jendela browser, lalu klik "Reset status".</small></p>
+</section>
+
+<div class="grid grid-2">
+  <section class="card">
+    <h2>Pencarian</h2>
+    <dl class="kv">
+      <dt>Kata kunci</dt><dd>{{ cfg.search.keywords | join(', ') }}</dd>
+      <dt>Lokasi</dt><dd>{{ cfg.search.locations | join(', ') }}</dd>
+      <dt>Umur maks.</dt><dd>{{ cfg.search.max_age_days }} hari</dd>
+      <dt>Judul dikecualikan</dt><dd>{{ cfg.search.title_exclude | join(', ') or '-' }}</dd>
+      <dt>Sumber aktif</dt><dd>{{ cfg.enabled_sources() | map('platform') | join(', ') }}</dd>
+      <dt>Interval</dt><dd>cari tiap {{ cfg.schedule.search_interval_minutes }} mnt · kirim tiap {{ cfg.schedule.apply_interval_minutes }} mnt</dd>
+    </dl>
+  </section>
+  <section class="card">
+    <h2>Penilaian & pengiriman</h2>
+    <dl class="kv">
+      <dt>Mode</dt><dd>{{ cfg.matching.mode }}</dd>
+      <dt>Kirim otomatis</dt><dd>skor ≥ {{ cfg.matching.auto_apply_threshold }}</dd>
+      <dt>Masuk review</dt><dd>skor ≥ {{ cfg.matching.review_threshold }}</dd>
+      <dt>Dry run</dt><dd>{{ 'YA (tidak benar-benar mengirim)' if cfg.apply.dry_run else 'Tidak (mengirim sungguhan)' }}</dd>
+      <dt>Batas harian</dt><dd>{{ applied_total_today }} / {{ cfg.apply.daily_limit_total }} hari ini</dd>
+      <dt>Jam aktif</dt><dd>{{ cfg.apply.active_hours }} ({{ cfg.schedule.timezone }})</dd>
+      <dt>Jeda antar lamaran</dt><dd>{{ cfg.apply.delay_seconds[0] }}–{{ cfg.apply.delay_seconds[1] }} detik</dd>
+      <dt>AI</dt><dd>{{ cfg.ai.model if ai_available else 'nonaktif' }} · {{ ai_calls }}/{{ cfg.ai.max_calls_per_day }} panggilan hari ini</dd>
+      <dt>Browser</dt><dd>{{ 'headless' if cfg.browser.headless else 'tampil di layar' }}</dd>
+    </dl>
+  </section>
+</div>
+
+<section class="card" style="margin-top:16px">
+  <h2>Riwayat siklus</h2>
+  <div class="table-wrap">
+  <table class="responsive">
+    <thead><tr><th>Jenis</th><th>Mulai</th><th class="num">Durasi</th><th>Hasil</th></tr></thead>
+    <tbody>
+    {% for r in runs %}
+      <tr>
+        <td data-label="Jenis">{{ 'Pencarian' if r.kind == 'search' else 'Lamaran' }}</td>
+        <td data-label="Mulai"><small>{{ r.started_at | local }}</small></td>
+        <td class="num" data-label="Durasi">{{ (r.duration_s | round | int) ~ ' dtk' if r.duration_s is not none else 'berjalan' }}</td>
+        <td data-label="Hasil">
+          {% if not r.ok %}<span class="badge critical">Error</span> <small>{{ r.error }}</small>
+          {% elif r.kind == 'search' %}<small>{{ r.summary.get('found', 0) }} ditemukan, {{ r.summary.get('new', 0) }} baru{% if r.summary.get('errors') %}, error: {{ r.summary.errors.keys() | join(', ') }}{% endif %}</small>
+          {% else %}<small>{{ r.summary.get('attempted', 0) }} diproses {% for k, v in (r.summary.get('outcomes') or {}).items() %}· {{ k }}: {{ v }} {% endfor %}</small>{% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4" class="muted">Belum ada siklus.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

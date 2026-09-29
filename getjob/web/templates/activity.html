@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Aktivitas{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Aktivitas</h1><p class="muted">Log pencarian, penilaian, dan pengiriman lamaran.</p></div></div>
+
+<form class="filters" method="get" action="/activity">
+  <select name="kind" aria-label="Jenis">
+    <option value="">Semua jenis</option>
+    {% for k, label in [('search', 'Pencarian'), ('score', 'Penilaian'), ('apply', 'Lamaran'), ('ai', 'AI'), ('user', 'Tindakan saya'), ('system', 'Sistem')] %}
+      <option value="{{ k }}" {{ 'selected' if filters.kind == k }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="level" aria-label="Level">
+    <option value="">Semua level</option>
+    <option value="info" {{ 'selected' if filters.level == 'info' }}>Info</option>
+    <option value="warning" {{ 'selected' if filters.level == 'warning' }}>Peringatan</option>
+    <option value="error" {{ 'selected' if filters.level == 'error' }}>Error</option>
+  </select>
+  <button class="btn">Terapkan</button>
+</form>
+
+<div class="card">
+  {% for e in events %}
+    <div class="event {{ e.level }}"><time>{{ e.ts | local }}</time><span class="msg">{% if e.job_id %}<a href="/jobs/{{ e.job_id }}">#{{ e.job_id }}</a> {% endif %}{{ e.message }}</span></div>
+  {% else %}<p class="muted">Belum ada aktivitas.</p>{% endfor %}
+</div>
+
+{% if pages > 1 %}
+<nav class="pager" aria-label="Halaman">
+  {% if page > 1 %}<a class="btn small" href="/activity?kind={{ filters.kind }}&level={{ filters.level }}&page={{ page - 1 }}">‹ Sebelumnya</a>{% endif %}
+  <small>Halaman {{ page }} dari {{ pages }}</small>
+  {% if page < pages %}<a class="btn small" href="/activity?kind={{ filters.kind }}&level={{ filters.level }}&page={{ page + 1 }}">Berikutnya ›</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

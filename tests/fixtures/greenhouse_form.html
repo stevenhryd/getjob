@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Apply</title></head>
+<body>
+<form id="application-form" onsubmit="event.preventDefault(); document.getElementById('thanks').style.display='block'; this.style.display='none';">
+  <label for="first_name">First Name *</label><input id="first_name" name="first_name" required>
+  <label for="last_name">Last Name *</label><input id="last_name" name="last_name" required>
+  <label for="email">Email *</label><input id="email" type="email" name="email" required>
+  <label for="phone">Phone</label><input id="phone" type="tel" name="phone">
+  <label for="resume">Resume/CV *</label><input id="resume" type="file" name="resume" required>
+  <label for="linkedin">LinkedIn Profile</label><input id="linkedin" name="linkedin">
+  <label for="salary">What are your salary expectations (USD)? *</label><input id="salary" name="salary" required>
+  <label for="exp">Years of experience with Django *</label>
+  <select id="exp" required>
+    <option value="">Select...</option>
+    <option value="a">Less than 1 year</option>
+    <option value="b">1-2 years</option>
+    <option value="c">3-5 years</option>
+    <option value="d">5+ years</option>
+  </select>
+  <label for="why">Why do you want to work here? *</label><textarea id="why" required></textarea>
+  <input type="checkbox" id="privacy" required><label for="privacy">I agree to the privacy policy</label>
+  <input type="checkbox" id="news" checked><label for="news">Subscribe to our newsletter</label>
+  <label for="gender">Gender</label>
+  <select id="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Decline to self-identify</option></select>
+  <button type="submit" id="submit_app">Submit application</button>
+</form>
+<div id="thanks" style="display:none">Thank you for applying!</div>
+</body></html>

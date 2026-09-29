@@ -1,0 +1,16 @@
+{% macro status_badge(job) -%}
+<span class="badge {{ STATUS_TONE.get(job.status, 'muted') }}">{{ job.status_label }}</span>
+{%- endmacro %}
+
+{% macro score(job) -%}
+{% if job.score is not none %}<span class="score {{ 'hi' if job.score >= cfg.matching.auto_apply_threshold }}" title="Skor {{ job.score_source or '' }}">{{ job.score }}</span>{% else %}<span class="score">–</span>{% endif %}
+{%- endmacro %}
+
+{% macro platform_badge(state) -%}
+{% set st = state.get('status') or 'unknown' %}
+{% if state.get('paused') %}<span class="badge muted">Dijeda</span>
+{% elif st == 'ok' %}<span class="badge good">Login OK</span>
+{% elif st == 'needs_login' %}<span class="badge critical">Perlu login</span>
+{% elif st == 'blocked' %}<span class="badge serious">Captcha/verifikasi</span>
+{% else %}<span class="badge muted">Belum dicek</span>{% endif %}
+{%- endmacro %}

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=GetJob
+Comment=Pencari & pelamar kerja otomatis (worker + dashboard)
+Exec=/bin/bash -c "$HOME/getjob/scripts/run.sh"
+Terminal=false
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=20

@@ -1,0 +1,5 @@
+[{"legal": "API Terms of Service: link back to Remote OK"},
+ {"id": "123456", "slug": "remote-python-engineer", "epoch": 1790000000, "company": "Remote Co", "position": "Senior Python Engineer",
+  "tags": ["python", "backend"], "description": "<p>Work from anywhere.</p>", "location": "Worldwide",
+  "salary_min": 60000, "salary_max": 90000, "apply_url": "https://job-boards.greenhouse.io/remoteco/jobs/777", "url": "https://remoteok.com/remote-jobs/123456"},
+ {"id": "123457", "position": "Marketing Manager", "company": "Ads Inc", "tags": ["marketing"], "apply_url": "https://ads.example/apply"}]

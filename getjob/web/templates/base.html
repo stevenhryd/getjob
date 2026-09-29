@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}GetJob{% endblock %} · GetJob</title>
+  <link rel="stylesheet" href="/static/app.css?v={{ version }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232a78d6'/><path d='M10 12h12v11H10z M13 12V9h6v3' stroke='white' stroke-width='2' fill='none'/></svg>">
+  <script src="/static/app.js?v={{ version }}" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">Get<span>Job</span></a>
+    <nav class="nav" aria-label="Menu utama">
+      <a href="/" class="{{ 'active' if nav == 'overview' }}">Ringkasan</a>
+      <a href="/review" class="{{ 'active' if nav == 'review' }}">Review{% if review_count %}<span class="count">{{ review_count }}</span>{% endif %}</a>
+      <a href="/jobs?status=active" class="{{ 'active' if nav in ('jobs', 'job_detail') }}">Lowongan</a>
+      <a href="/answers" class="{{ 'active' if nav == 'answers' }}">Jawaban form</a>
+      <a href="/activity" class="{{ 'active' if nav == 'activity' }}">Aktivitas</a>
+      <a href="/settings" class="{{ 'active' if nav == 'settings' }}">Pengaturan</a>
+    </nav>
+    <a class="btn small" href="/logout">Keluar</a>
+  </div>
+</header>
+<main class="wrap">
+  {% if flash %}<div class="alert flash" role="status">{{ flash }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

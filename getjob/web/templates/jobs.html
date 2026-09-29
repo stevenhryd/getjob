@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, score %}
+{% block title %}Lowongan{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Lowongan</h1><p class="muted">{{ total }} lowongan</p></div>
+</div>
+
+<form class="filters" method="get" action="/jobs" role="search">
+  <select name="status" aria-label="Status">
+    <option value="" {{ 'selected' if not filters.status }}>Semua status</option>
+    <option value="active" {{ 'selected' if filters.status == 'active' }}>Aktif (tanpa yang dilewati)</option>
+    <option value="sent" {{ 'selected' if filters.status == 'sent' }}>Semua yang terkirim</option>
+    {% for key, label in Status.LABELS.items() %}
+      <option value="{{ key }}" {{ 'selected' if filters.status == key }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="source" aria-label="Sumber">
+    <option value="">Semua sumber</option>
+    {% for key, label in PLATFORM_NAMES.items() %}
+      <option value="{{ key }}" {{ 'selected' if filters.source == key }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <input type="number" name="min_score" min="0" max="100" placeholder="Skor min" value="{{ filters.min_score }}" style="width:110px" aria-label="Skor minimal">
+  <input type="search" name="q" placeholder="Cari posisi, perusahaan, lokasi" value="{{ filters.q }}">
+  <button class="btn">Terapkan</button>
+</form>
+
+<form method="post" action="/jobs/bulk">
+<div class="card">
+  <div class="row" style="margin-bottom:8px">
+    <label class="row"><input type="checkbox" id="select-all"> <small>Pilih semua</small></label>
+    <span class="spacer"></span>
+    <button class="btn small" name="action" value="approve">Setujui terpilih</button>
+    <button class="btn small danger" name="action" value="dismiss">Tolak terpilih</button>
+  </div>
+  <div class="table-wrap">
+  <table class="responsive">
+    <thead><tr><th></th><th class="num">Skor</th><th>Posisi</th><th>Lokasi</th><th>Sumber</th><th>Status</th><th>Ditemukan</th></tr></thead>
+    <tbody>
+    {% for j in jobs %}
+      <tr>
+        <td><input type="checkbox" name="ids" value="{{ j.id }}" aria-label="Pilih {{ j.title }}"></td>
+        <td class="num" data-label="Skor">{{ score(j) }}</td>
+        <td data-label="Posisi"><a class="job-title" href="/jobs/{{ j.id }}">{{ j.title }}</a><br><small>{{ j.company }}</small></td>
+        <td data-label="Lokasi"><small>{{ j.location or '-' }}{% if j.is_remote %} · Remote{% endif %}</small></td>
+        <td data-label="Sumber">{{ j.source | platform }}</td>
+        <td data-label="Status">{{ status_badge(j) }}{% if j.status_reason %}<br><small>{{ j.status_reason[:90] }}</small>{% endif %}</td>
+        <td data-label="Ditemukan"><small>{{ j.found_at | ago }}</small></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="muted">Tidak ada lowongan untuk filter ini.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+</form>
+
+{% if pages > 1 %}
+<nav class="pager" aria-label="Halaman">
+  {% set qs = 'status=' ~ filters.status ~ '&source=' ~ filters.source ~ '&q=' ~ (filters.q | urlencode) ~ '&min_score=' ~ filters.min_score %}
+  {% if page > 1 %}<a class="btn small" href="/jobs?{{ qs }}&page={{ page - 1 }}">‹ Sebelumnya</a>{% endif %}
+  <small>Halaman {{ page }} dari {{ pages }}</small>
+  {% if page < pages %}<a class="btn small" href="/jobs?{{ qs }}&page={{ page + 1 }}">Berikutnya ›</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

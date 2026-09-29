@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, score %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p><a href="/jobs?status=active">‹ Lowongan</a></p>
+    <h1>{{ job.title }}</h1>
+    <div class="row ink2">{{ job.company }} · {{ job.location or '-' }}{% if job.is_remote %} · Remote{% endif %} · {{ status_badge(job) }}</div>
+  </div>
+  <div class="row">
+    <a class="btn" href="{{ job.url }}" target="_blank" rel="noopener">Buka lowongan ↗</a>
+    {% if job.apply_url and job.apply_url != job.url %}<a class="btn" href="{{ job.apply_url }}" target="_blank" rel="noopener">Halaman lamaran ↗</a>{% endif %}
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <section class="card">
+    <h2>Info</h2>
+    <dl class="kv">
+      <dt>Skor</dt><dd>{{ score(job) }} <small>({{ job.score_source or '-' }}; kata kunci {{ job.keyword_score if job.keyword_score is not none else '-' }})</small></dd>
+      <dt>Alasan</dt><dd>{{ job.score_reason or '-' }}</dd>
+      <dt>Status</dt><dd>{{ job.status_label }}{% if job.status_reason %} · <small>{{ job.status_reason }}</small>{% endif %}</dd>
+      <dt>Sumber</dt><dd>{{ job.source | platform }}</dd>
+      <dt>Cara melamar</dt><dd>{{ job.apply_method | platform if job.apply_method else 'Manual / situs perusahaan' }}</dd>
+      <dt>Gaji</dt><dd>{{ job.salary or '-' }}</dd>
+      <dt>Bahasa</dt><dd>{{ {'id': 'Indonesia', 'en': 'Inggris'}.get(job.language, '-') }}</dd>
+      <dt>Diposting</dt><dd>{{ job.posted_at | local('%d %b %Y') if job.posted_at else '-' }}</dd>
+      <dt>Ditemukan</dt><dd>{{ job.found_at | local }}</dd>
+      <dt>Dikirim</dt><dd>{{ job.applied_at | local if job.applied_at else '-' }}</dd>
+      <dt>Percobaan</dt><dd>{{ job.attempts }}{% if job.last_error %} · <small>{{ job.last_error }}</small>{% endif %}</dd>
+    </dl>
+    {% if job.matched_skills or job.missing_skills %}
+    <h3 style="margin-top:12px">Skill</h3>
+    <div class="chips">
+      {% for s in job.matched_skills or [] %}<span class="chip ok">✓ {{ s }}</span>{% endfor %}
+      {% for s in job.missing_skills or [] %}<span class="chip">✗ {{ s }}</span>{% endfor %}
+    </div>
+    {% endif %}
+    {% if job.red_flags %}<div class="alert warning" style="margin-top:12px">⚠ {{ job.red_flags | join('; ') }}</div>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Tindakan</h2>
+    <form method="post" action="/jobs/{{ job.id }}/action" class="row" style="margin-bottom:12px">
+      {% if job.status in (Status.REVIEW, Status.MANUAL, Status.FAILED, Status.DISMISSED, Status.SKIPPED, Status.TESTED) %}
+        <button class="btn primary" name="action" value="approve">Setujui (masuk antrian)</button>
+        <button class="btn" name="action" value="apply_now">Kirim sekarang</button>
+      {% endif %}
+      {% if job.status not in (Status.DISMISSED,) %}<button class="btn danger" name="action" value="dismiss">Tolak</button>{% endif %}
+    </form>
+    <form method="post" action="/jobs/{{ job.id }}/action" class="row" style="margin-bottom:12px">
+      <input type="hidden" name="action" value="set_status">
+      <label for="status"><small>Ubah status</small></label>
+      <select id="status" name="status">
+        {% for s in Status.USER_SETTABLE %}<option value="{{ s }}" {{ 'selected' if job.status == s }}>{{ Status.LABELS[s] }}</option>{% endfor %}
+      </select>
+      <button class="btn small">Simpan</button>
+    </form>
+    <form method="post" action="/jobs/{{ job.id }}/action">
+      <input type="hidden" name="action" value="notes">
+      <label for="notes"><small>Catatan pribadi (jadwal interview, kontak HR, dll.)</small></label>
+      <textarea id="notes" name="notes" style="min-height:80px">{{ job.notes or '' }}</textarea>
+      <button class="btn small" style="margin-top:6px">Simpan catatan</button>
+    </form>
+  </section>
+</div>
+
+<section class="card" style="margin-top:16px">
+  <div class="row"><h2>Cover letter</h2><span class="spacer"></span><button class="btn small" type="button" data-copy="#cover-letter">Salin</button></div>
+  <form method="post" action="/jobs/{{ job.id }}/action">
+    <textarea id="cover-letter" name="cover_letter">{{ job.cover_letter or '' }}</textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" name="action" value="save_letter">Simpan</button>
+      <button class="btn" name="action" value="regen_letter" data-confirm="Buat ulang cover letter? Isi sekarang akan diganti.">Buat ulang</button>
+    </div>
+  </form>
+</section>
+
+{% if job.screenshot %}
+<section class="card" style="margin-top:16px">
+  <h2>Screenshot terakhir</h2>
+  <a href="/screenshots/{{ job.screenshot }}" target="_blank"><img class="shot" src="/screenshots/{{ job.screenshot }}" alt="Screenshot proses lamaran" loading="lazy"></a>
+</section>
+{% endif %}
+
+<div class="grid grid-2" style="margin-top:16px">
+  <section class="card">
+    <h2>Deskripsi</h2>
+    <div class="desc">{{ job.description or 'Tidak ada deskripsi.' }}</div>
+  </section>
+  <section class="card">
+    <h2>Riwayat</h2>
+    {% for e in events %}
+      <div class="event {{ e.level }}"><time>{{ e.ts | local }}</time><span class="msg">{{ e.message }}</span></div>
+    {% else %}<p class="muted">Belum ada riwayat.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

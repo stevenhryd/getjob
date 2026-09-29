@@ -1,0 +1,189 @@
+# ============================================================================
+#  GetJob — konfigurasi
+#  Salin ke config.yaml (`getjob init` melakukannya), lalu edit.
+#  Rahasia (API key, password dashboard) disimpan di .env, BUKAN di sini.
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# Profil Anda: dipakai untuk mengisi form lamaran & menilai kecocokan.
+# Semua jawaban diambil dari sini + CV. Isi sejujur dan selengkap mungkin.
+# ---------------------------------------------------------------------------
+profile:
+  full_name: "Nama Lengkap Anda"
+  email: "anda@email.com"
+  phone: "+6281234567890"
+  city: "Jakarta"
+  country: "Indonesia"
+  headline: "Backend Developer"          # posisi/peran utama Anda
+  current_title: "Backend Developer"
+  current_company: "PT Contoh Teknologi"
+  years_experience: 3
+  education: "S1 Teknik Informatika"
+  summary: >
+    Backend developer dengan 3 tahun pengalaman membangun API dengan Python/Django
+    dan PostgreSQL, terbiasa dengan Docker dan AWS.
+  skills: [python, django, fastapi, postgresql, docker, aws, git, rest api, redis]
+  # Opsional: tahun pengalaman per skill (untuk pertanyaan "berapa tahun pengalaman X?")
+  skill_years:
+    python: 3
+    django: 2
+    docker: 2
+  linkedin_url: "https://www.linkedin.com/in/username"
+  github_url: "https://github.com/username"
+  portfolio_url: ""
+  expected_salary_idr: 15000000   # per bulan
+  expected_salary_usd: 30000      # per tahun, untuk lowongan luar negeri/remote
+  notice_period: "1 bulan"
+  notice_period_days: 30
+  willing_to_relocate: false
+  need_visa_sponsorship: true     # untuk kerja on-site di luar negeri
+  authorized_countries: [Indonesia]
+  gender: ""                      # kosong = "Prefer not to say"
+  resume_path: "data/cv.pdf"      # CV utama (PDF)
+  resume_path_en: null            # opsional: CV bahasa Inggris untuk lowongan berbahasa Inggris
+
+# ---------------------------------------------------------------------------
+# Pencarian
+# ---------------------------------------------------------------------------
+search:
+  keywords:
+    - "backend developer"
+    - "python developer"
+    - "software engineer"
+  locations: ["Jakarta", "Indonesia"]
+  max_age_days: 14               # abaikan lowongan lebih lama dari ini
+  max_results_per_query: 50
+  title_must_include_any: []     # contoh: [developer, engineer, programmer]
+  title_exclude: [senior manager, director, head of, "vp ", principal, intern, magang, sales]
+  description_exclude: []        # contoh: ["wajib memiliki kendaraan"]
+  company_exclude: []            # perusahaan yang tidak ingin dilamar
+
+sources:
+  linkedin:
+    enabled: true
+    auto_apply: true             # false = hanya cari, lamar manual
+    easy_apply_only: true        # hanya lowongan "Easy Apply"
+    location: "Indonesia"
+    remote_only: false
+  jobstreet: { enabled: true, auto_apply: true }
+  glints:    { enabled: true, auto_apply: true }
+  kalibrr:   { enabled: true, auto_apply: true }
+  # Remote / luar negeri. Lowongan yang lamarannya di Greenhouse/Lever dikirim otomatis;
+  # sisanya masuk status "Perlu manual".
+  remoteok:
+    enabled: true
+    auto_apply: true
+    tags: [python, backend]      # kosong = semua
+  remotive:
+    enabled: true
+    auto_apply: true
+    category: software-dev
+  greenhouse:
+    enabled: true
+    auto_apply: true
+    # Token board perusahaan: https://job-boards.greenhouse.io/<token>
+    boards: [gitlab, grafanalabs, canonical]
+  lever:
+    enabled: true
+    auto_apply: true
+    # Nama perusahaan: https://jobs.lever.co/<nama>
+    companies: [xendit, palantir, spotify]
+
+# ---------------------------------------------------------------------------
+# Penilaian (hybrid)
+#   skor >= auto_apply_threshold  -> otomatis dikirim
+#   skor >= review_threshold      -> menunggu persetujuan di dashboard
+#   di bawahnya                   -> dilewati
+# ---------------------------------------------------------------------------
+matching:
+  mode: hybrid                   # hybrid | auto | manual
+  auto_apply_threshold: 80
+  review_threshold: 60
+  prefilter_min_score: 20        # saringan kata kunci sebelum AI (hemat biaya)
+  dedupe_days: 45                # lowongan sama (perusahaan+judul) di platform lain tidak dilamar 2x
+
+# ---------------------------------------------------------------------------
+# Pengiriman lamaran
+# ---------------------------------------------------------------------------
+apply:
+  # PENTING: mulai dengan true. Program mengisi form sampai tombol "Kirim" terakhir
+  # tanpa mengirim, lalu menyimpan screenshot. Setelah hasilnya benar, ubah ke false.
+  dry_run: true
+  daily_limit_total: 40
+  daily_limits:                  # batas per platform per hari (jangan terlalu tinggi, akun bisa dibatasi)
+    linkedin: 15
+    jobstreet: 15
+    glints: 15
+    kalibrr: 15
+    greenhouse: 10
+    lever: 10
+  delay_seconds: [60, 180]       # jeda acak antar lamaran
+  active_hours: "08:00-21:00"    # hanya kirim di jam ini
+  max_attempts: 2
+  max_steps: 12                  # batas langkah form multi-halaman
+  max_per_run: 10                # maks. percobaan per siklus (termasuk yang gagal)
+
+schedule:
+  search_interval_minutes: 180
+  apply_interval_minutes: 20
+  timezone: Asia/Jakarta
+
+browser:
+  headless: false                # false = jendela Chromium tampil di desktop mini PC (lebih jarang dicurigai)
+  slow_mo_ms: 0
+  timeout_ms: 30000
+  executable_path: null          # isi kalau ingin memakai Chrome/Chromium lain
+
+# ---------------------------------------------------------------------------
+# AI (Claude). Butuh ANTHROPIC_API_KEY di .env. Tanpa key, program memakai
+# pencocokan kata kunci + template cover letter.
+# ---------------------------------------------------------------------------
+ai:
+  enabled: true
+  model: claude-opus-5-5         # ganti ke claude-sonnet-5-5 / claude-haiku-4-5 untuk biaya lebih rendah
+  effort_scoring: low            # penilaian & jawaban form
+  effort_writing: medium         # cover letter
+  max_calls_per_day: 150         # pengaman biaya (lihat estimasi di README)
+  use_fallbacks: true
+
+cover_letter:
+  # Template dipakai saat AI tidak tersedia. Placeholder: {full_name} {headline} {years}
+  # {title} {company} {skills} {phone} {email} {city}
+  template_id: |
+    Yth. Tim Rekrutmen {company},
+
+    Saya {full_name}, {headline} dengan pengalaman {years} tahun. Saya tertarik melamar posisi {title} di {company}. Keahlian saya di {skills} relevan dengan kebutuhan posisi ini.
+
+    Saya terbiasa bekerja dalam tim, cepat belajar, dan fokus pada hasil. CV saya terlampir untuk pertimbangan Bapak/Ibu. Terima kasih atas waktu dan perhatiannya.
+
+    Hormat saya,
+    {full_name}
+    {phone} | {email}
+  template_en: |
+    Dear {company} Hiring Team,
+
+    I am {full_name}, a {headline} with {years} years of experience. I am excited to apply for the {title} role at {company}. My experience with {skills} maps well to what this role needs.
+
+    I enjoy collaborating with teams, learn quickly, and care about shipping reliable work. My resume is attached for your consideration. Thank you for your time.
+
+    Best regards,
+    {full_name}
+    {phone} | {email}
+
+# ---------------------------------------------------------------------------
+# Jawaban tetap untuk pertanyaan form (regex, tidak peka huruf besar/kecil).
+# Diutamakan di atas AI. Jawaban juga bisa diatur dari dashboard > Jawaban form.
+# ---------------------------------------------------------------------------
+answers:
+  - pattern: "english (proficiency|level)|kemampuan bahasa inggris"
+    answer: "Professional working proficiency"
+  - pattern: "willing to work (on-?site|from office)|bersedia (bekerja )?(di kantor|wfo)"
+    answer: "Yes"
+  - pattern: "background check"
+    answer: "Yes"
+
+dashboard:
+  host: 0.0.0.0                  # 0.0.0.0 = bisa diakses dari HP (via Tailscale / WiFi)
+  port: 8000
+
+data_dir: data

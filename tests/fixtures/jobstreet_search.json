@@ -1,0 +1,9 @@
+{"data": [
+  {"id": "88001122", "title": "Python Developer", "advertiser": {"id": "1", "description": "PT Maju Jaya"},
+   "locations": [{"label": "Jakarta Selatan, Jakarta Raya"}], "listingDate": "2026-09-27T03:00:00Z",
+   "teaser": "Kami mencari Python Developer berpengalaman.", "bulletPoints": ["Django & FastAPI", "Gaji kompetitif"],
+   "salaryLabel": "Rp 12.000.000 – Rp 18.000.000 per month", "workTypes": ["Full time"],
+   "workArrangements": {"data": [{"id": "3", "label": {"text": "Remote"}}]}},
+  {"id": "88001123", "title": "Admin Gudang", "companyName": "CV Sentosa", "location": "Bekasi", "area": "Jawa Barat",
+   "listingDate": "2026-09-20T03:00:00Z", "teaser": "Admin gudang"}
+], "totalCount": 2}

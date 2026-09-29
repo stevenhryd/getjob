@@ -1,0 +1,20 @@
+# Service systemd (user) untuk GetJob.
+# Pasang:  cp deploy/getjob.service ~/.config/systemd/user/
+#          systemctl --user daemon-reload && systemctl --user enable --now getjob
+#          sudo loginctl enable-linger $USER
+# Karena service tidak punya akses ke layar, set `browser.headless: true` di config.yaml.
+# Kalau ingin browser tampil di desktop, pakai deploy/getjob-autostart.desktop saja.
+[Unit]
+Description=GetJob - pencari & pelamar kerja otomatis
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/getjob
+ExecStart=%h/getjob/.venv/bin/getjob start
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=default.target

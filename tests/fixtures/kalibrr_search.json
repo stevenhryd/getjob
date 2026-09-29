@@ -1,0 +1,9 @@
+{"jobs": [
+  {"id": 250001, "name": "Software Engineer - Backend", "company": {"code": "xyz-tech", "name": "XYZ Tech"},
+   "google_location": {"address_components": {"city": "Jakarta Selatan", "region": "DKI Jakarta"}},
+   "description": "<p>Build <b>scalable</b> services.</p>", "qualifications": "<ul><li>Python</li><li>Go</li></ul>",
+   "activation_date": "2026-09-26T08:00:00+00:00", "base_salary": 10000000, "maximum_salary": 20000000,
+   "salary_currency": "IDR", "is_work_from_home": false},
+  {"id": 250002, "name": "QA Engineer", "company": {"code": "abc", "name": "ABC"}, "application_url": "https://abc.example/careers",
+   "activation_date": "2026-09-25T08:00:00Z"}
+], "total": 2}

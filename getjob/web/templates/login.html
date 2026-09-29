@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masuk · GetJob</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<main class="wrap">
+  <div class="card login-box">
+    <h1>Get<span style="color:var(--accent)">Job</span></h1>
+    <p class="muted">Dashboard pencari kerja otomatis</p>
+    {% if not configured %}
+      <div class="alert critical">Password dashboard belum diatur. Isi <code>GETJOB_DASHBOARD_PASSWORD</code> di file <code>.env</code> lalu restart program.</div>
+    {% endif %}
+    {% if error %}<div class="alert critical" role="alert">{{ error }}</div>{% endif %}
+    <form method="post" action="/login">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" autocomplete="current-password" required autofocus>
+      <button class="btn primary" type="submit">Masuk</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

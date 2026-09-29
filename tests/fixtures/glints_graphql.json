@@ -1,0 +1,9 @@
+{"data": {"searchJobsV3": {"jobsInPage": [
+  {"id": "0f9e8d7c-1111-2222-3333-444455556666", "title": "Backend Developer", "workArrangementOption": "REMOTE",
+   "company": {"id": "c1", "name": "Startup Keren"}, "city": {"name": "Jakarta"}, "location": {"formattedName": "Jakarta Selatan, DKI Jakarta"},
+   "salaries": [{"minAmount": 8000000, "maxAmount": 12000000, "CurrencyCode": "IDR"}],
+   "skills": [{"skill": {"name": "Python"}, "mustHave": true}, {"skill": {"name": "Django"}}],
+   "minYearsOfExperience": 1, "maxYearsOfExperience": 3, "educationLevel": "BACHELOR_DEGREE",
+   "hierarchicalJobCategory": {"name": "Software Engineer"}, "updatedAt": "2026-09-28T10:00:00.000Z"},
+  {"id": "external-1", "title": "Frontend Dev", "company": {"name": "Other"}, "externalApplyURL": "https://other.example/apply"}
+], "hasMore": false}}}
